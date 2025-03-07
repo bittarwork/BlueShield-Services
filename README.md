@@ -39,7 +39,7 @@ This system aims to:
 ## Installation
 1. **Clone the Repository**:
    ```bash
-   git clone https://github.com/[YourUsername]/BlueShield-Services.git
+   git clone https://github.com/bittarWork/BlueShield-Services.git
    cd BlueShield-Services
    ```
 
