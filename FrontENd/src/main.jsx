@@ -1,10 +1,17 @@
-import { StrictMode } from 'react'
-import { createRoot } from 'react-dom/client'
-import './index.css'
-import App from './App.jsx'
+import React from "react";
+import { createRoot } from "react-dom/client"; // استيراد createRoot
+import App from "./App";
+import { ThemeProviderWrapper } from "./contexts/ThemeContext";
 
-createRoot(document.getElementById('root')).render(
-  <StrictMode>
-    <App />
-  </StrictMode>,
-)
+// إنشاء جذر التطبيق
+const container = document.getElementById("root");
+const root = createRoot(container); // إنشاء جذر باستخدام createRoot
+
+// تقديم التطبيق
+root.render(
+  <React.StrictMode>
+    <ThemeProviderWrapper>
+      <App />
+    </ThemeProviderWrapper>
+  </React.StrictMode>
+);
