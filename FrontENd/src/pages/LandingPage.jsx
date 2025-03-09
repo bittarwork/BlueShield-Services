@@ -1,10 +1,12 @@
 import React from "react";
+import NavBar from "../components/NavBar";
+import Footer from "../components/Footer";
+import Sidebar from "../components/Sidebar";
 
 const LandingPage = () => {
   return (
     <div>
-      <h1>Welcome to the Landing Page</h1>
-      <p>Please log in or register to access the dashboard.</p>
+      <Sidebar></Sidebar>
     </div>
   );
 };

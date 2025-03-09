@@ -2,6 +2,7 @@ import React from "react";
 import { createRoot } from "react-dom/client"; // استيراد createRoot
 import App from "./App";
 import { ThemeProviderWrapper } from "./contexts/ThemeContext";
+import "./index.css";
 
 // إنشاء جذر التطبيق
 const container = document.getElementById("root");
