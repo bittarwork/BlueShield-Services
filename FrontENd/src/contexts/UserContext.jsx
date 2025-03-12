@@ -1,160 +1,182 @@
-import React, { createContext, useContext, useState, useEffect } from "react";
-import axios from "axios";
+import React, { createContext, useContext, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import axios from 'axios';
 
 // Create a context for user-related data and functions
 const UserContext = createContext();
 
-// Custom hook to access the UserContext
-export const useUser = () => useContext(UserContext);
-
 // UserProvider component to manage user authentication state
 export const UserProvider = ({ children }) => {
-  const [user, setUser] = useState(null); // State to store user data
-  const [isAuthenticated, setIsAuthenticated] = useState(false); // State to track authentication status
-  const [loading, setLoading] = useState(true); // State to manage loading state
+  const [user, setUser] = useState(
+    JSON.parse(localStorage.getItem('user')) || null
+  );
+  const [isAuthenticated, setIsAuthenticated] = useState(
+    localStorage.getItem('isAuthenticated') === 'true'
+  );
+  const [loading, setLoading] = useState(false); // Initially set loading to false
+  const [token, setToken] = useState(localStorage.getItem('token') || null);
+  const API_URL = import.meta.env.VITE_API_URL;
+  const navigate = useNavigate();
 
   // Function to handle user login
   const login = async (email, password) => {
+    setLoading(true); // Start loading
     try {
-      // Send a POST request to the login endpoint
-      const response = await axios.post(
-        `${process.env.API_URL}/api/users/login`,
-        { email, password }
-      );
+      const response = await axios.post(`${API_URL}/api/users/login`, {
+        email,
+        password,
+      });
       const { token, user: userData } = response.data;
 
-      // Store the token in localStorage
-      localStorage.setItem("token", token);
-      setUser(userData); // Update user state
-      setIsAuthenticated(true); // Set authentication status to true
-      return userData; // Return user data for further use
+      localStorage.setItem('token', token);
+      localStorage.setItem('user', JSON.stringify(userData));
+      localStorage.setItem('isAuthenticated', 'true');
+      setToken(token);
+      setUser(userData);
+      setIsAuthenticated(true);
+
+      // Redirect user based on role
+      switch (userData.role) {
+        case 'admin':
+          navigate('/admin');
+          break;
+        case 'technician':
+          navigate('/tech');
+          break;
+        default:
+          navigate('/dashboard');
+          break;
+      }
     } catch (error) {
-      console.error("Login failed:", error);
-      throw error; // Propagate the error to the caller
+      console.error('Login error:', error);
+      throw error; // Optionally, handle the error by showing a message to the user
+    } finally {
+      setLoading(false); // Stop loading
     }
   };
 
   // Function to handle user registration
   const register = async (userData) => {
+    setLoading(true); // Start loading
     try {
-      // Send a POST request to the registration endpoint
       const response = await axios.post(
-        `${process.env.API_URL}/api/users/register`,
+        `${API_URL}/api/users/register`,
         userData
       );
       const { token, user: userDataResponse } = response.data;
 
-      // Store the token in localStorage
-      localStorage.setItem("token", token);
-      setUser(userDataResponse); // Update user state
-      setIsAuthenticated(true); // Set authentication status to true
-      return userDataResponse; // Return user data for further use
+      localStorage.setItem('token', token);
+      localStorage.setItem('user', JSON.stringify(userDataResponse));
+      localStorage.setItem('isAuthenticated', 'true');
+      setToken(token);
+      setUser(userDataResponse);
+      setIsAuthenticated(true);
+      navigate('/Login');
     } catch (error) {
-      console.error("Registration failed:", error);
-      throw error; // Propagate the error to the caller
+      console.error('Registration error:', error);
+      throw error;
+    } finally {
+      setLoading(false); // Stop loading
     }
   };
 
   // Function to handle user logout
   const logout = () => {
-    localStorage.removeItem("token"); // Remove token from localStorage
-    setUser(null); // Clear user state
-    setIsAuthenticated(false); // Set authentication status to false
-  };
-
-  // Function to fetch user data from the server
-  const fetchUser = async () => {
-    const token = localStorage.getItem("token");
-    if (token) {
-      try {
-        // Send a GET request to the profile endpoint with the token
-        const response = await axios.get(
-          `${process.env.API_URL}/api/users/profile`,
-          { headers: { Authorization: `Bearer ${token}` } }
-        );
-        setUser(response.data); // Update user state
-        setIsAuthenticated(true); // Set authentication status to true
-      } catch (error) {
-        console.error("Failed to fetch user:", error);
-        localStorage.removeItem("token"); // Remove invalid token
-      }
-    }
-    setLoading(false); // Set loading state to false
+    setLoading(true); // Optionally, you can show loading during logout
+    localStorage.removeItem('token');
+    localStorage.removeItem('user');
+    localStorage.removeItem('isAuthenticated');
+    setToken(null);
+    setUser(null);
+    setIsAuthenticated(false);
+    navigate('/'); // Redirect to home page after logout
+    setLoading(false); // Stop loading
   };
 
   // Function to update user profile
   const updateProfile = async (updatedData) => {
+    if (!user) {
+      throw new Error('User is not authenticated');
+    }
+    setLoading(true); // Start loading
     try {
-      const token = localStorage.getItem("token");
       const response = await axios.put(
-        `${process.env.API_URL}/api/users/profile/${user._id}`,
+        `${API_URL}/api/users/profile/${user._id}`,
         updatedData,
         { headers: { Authorization: `Bearer ${token}` } }
       );
-      setUser(response.data); // Update user state with new data
-      return response.data; // Return updated user data
+      localStorage.setItem('user', JSON.stringify(response.data));
+      setUser(response.data);
+      return response.data;
     } catch (error) {
-      console.error("Failed to update profile:", error);
+      console.error('Update profile error:', error);
       throw error;
+    } finally {
+      setLoading(false); // Stop loading
     }
   };
 
   // Function to change user password
   const changePassword = async (oldPassword, newPassword) => {
+    if (!user) {
+      throw new Error('User is not authenticated');
+    }
+    setLoading(true); // Start loading
     try {
-      const token = localStorage.getItem("token");
       await axios.put(
-        `${process.env.API_URL}/api/users/change-password/${user._id}`,
+        `${API_URL}/api/users/change-password/${user._id}`,
         { oldPassword, newPassword },
         { headers: { Authorization: `Bearer ${token}` } }
       );
-      return "Password changed successfully";
+      return 'Password changed successfully';
     } catch (error) {
-      console.error("Failed to change password:", error);
+      console.error('Change password error:', error);
       throw error;
+    } finally {
+      setLoading(false); // Stop loading
     }
   };
 
   // Function to register an admin (admin-only)
   const registerAdmin = async (adminData) => {
+    setLoading(true); // Start loading
     try {
-      const token = localStorage.getItem("token");
       const response = await axios.post(
-        `${process.env.API_URL}/api/users/register-admin`,
+        `${API_URL}/api/users/register-admin`,
         adminData,
         { headers: { Authorization: `Bearer ${token}` } }
       );
-      return response.data; // Return the new admin data
+      return response.data;
     } catch (error) {
-      console.error("Failed to register admin:", error);
+      console.error('Register admin error:', error);
       throw error;
+    } finally {
+      setLoading(false); // Stop loading
     }
   };
 
   // Function to delete a user (admin-only)
   const deleteUser = async (userId) => {
+    setLoading(true); // Start loading
     try {
-      const token = localStorage.getItem("token");
-      await axios.delete(`${process.env.API_URL}/api/users/${userId}`, {
+      await axios.delete(`${API_URL}/api/users/${userId}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
-      return "User deleted successfully";
+      return 'User deleted successfully';
     } catch (error) {
-      console.error("Failed to delete user:", error);
+      console.error('Delete user error:', error);
       throw error;
+    } finally {
+      setLoading(false); // Stop loading
     }
   };
-
-  // Fetch user data when the component mounts
-  useEffect(() => {
-    fetchUser();
-  }, []);
 
   // Value object to be passed to the context provider
   const value = {
     user,
     isAuthenticated,
     loading,
+    token,
     login,
     register,
     logout,
@@ -167,3 +189,6 @@ export const UserProvider = ({ children }) => {
   // Provide the context value to all child components
   return <UserContext.Provider value={value}>{children}</UserContext.Provider>;
 };
+
+// Custom hook to access the UserContext
+export const useUser = () => useContext(UserContext);

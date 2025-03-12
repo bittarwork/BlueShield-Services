@@ -1,20 +1,28 @@
-import React, { Suspense, lazy } from "react";
+import React, { Suspense, lazy } from 'react';
 import {
   BrowserRouter as Router,
   Routes,
   Route,
   Navigate,
-} from "react-router-dom";
-import { UserProvider, useUser } from "./contexts/UserContext";
-import { ErrorBoundary } from "react-error-boundary";
-
+} from 'react-router-dom';
+import { UserProvider, useUser } from './contexts/UserContext';
+import { ErrorBoundary } from 'react-error-boundary';
+import { ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
+import Skeleton from 'react-loading-skeleton';
+import 'react-loading-skeleton/dist/skeleton.css';
 // Lazy load pages to optimize performance
-const LandingPage = lazy(() => import("./pages/LandingPage"));
-const DashboardUser = lazy(() => import("./pages/User/DashboardUser"));
-const DashboardAdmin = lazy(() => import("./pages/Admin/DashboardAdmin"));
-const DashboardTech = lazy(() => import("./pages/Tech/DashboardTech"));
-const Error404 = lazy(() => import("./pages/Errors/Error404"));
-const Error403 = lazy(() => import("./pages/Errors/Error403"));
+const LandingPage = lazy(() => import('./pages/LandingPage'));
+const DashboardUser = lazy(() => import('./pages/User/DashboardUser'));
+const DashboardAdmin = lazy(() => import('./pages/Admin/DashboardAdmin'));
+const DashboardTech = lazy(() => import('./pages/Tech/DashboardTech'));
+const Services = lazy(() => import('./pages/Services'));
+const AboutUs = lazy(() => import('./pages/AboutUs'));
+const ContactUs = lazy(() => import('./pages/ContactUs'));
+const Login = lazy(() => import('./pages/Auth/Login'));
+const Register = lazy(() => import('./pages/Auth/Register'));
+const Error404 = lazy(() => import('./pages/Errors/Error404'));
+const Error403 = lazy(() => import('./pages/Errors/Error403'));
 
 // Error fallback UI for the ErrorBoundary component
 const ErrorFallback = ({ error, resetErrorBoundary }) => {
@@ -46,33 +54,42 @@ const ProtectedRoute = ({
   }
 
   // If adminOnly flag is set, ensure the user is an admin
-  if (adminOnly && user?.role !== "admin") {
+  if (adminOnly && user?.role !== 'admin') {
     return <Navigate to="/403" />; // Redirect to "Forbidden" page
   }
 
   // If technicianOnly flag is set, ensure the user is a technician
-  if (technicianOnly && user?.role !== "technician") {
+  if (technicianOnly && user?.role !== 'technician') {
     return <Navigate to="/403" />; // Redirect to "Forbidden" page
   }
 
   // Return the children components if user has access
   return children;
 };
-
+const LoadingSkeleton = () => (
+  <div>
+    <Skeleton height={50} count={3} />
+  </div>
+);
 const App = () => {
   return (
     // ErrorBoundary to catch errors and display fallback UI
     <ErrorBoundary FallbackComponent={ErrorFallback}>
-      <UserProvider>
-        <Router>
-          <Suspense fallback={<div>Loading pages...</div>}>
+      <Router>
+        <UserProvider>
+          <Suspense fallback={<LoadingSkeleton></LoadingSkeleton>}>
             <Routes>
-              {/* Route for LandingPage (public access) */}
+              {/* Route for (public access) */}
               <Route path="/" element={<LandingPage />} />
+              <Route path="/Services" element={<Services />} />
+              <Route path="/AboutUs" element={<AboutUs />} />
+              <Route path="/ContactUs" element={<ContactUs />} />
+              <Route path="/Login" element={<Login />} />
+              <Route path="/Register" element={<Register />} />
 
               {/* Route for DashboardUser (user access) */}
               <Route
-                path="/dashboard"
+                path="/dashboard/*"
                 element={
                   <ProtectedRoute>
                     <DashboardUser />
@@ -82,7 +99,7 @@ const App = () => {
 
               {/* Route for DashboardAdmin (admin access only) */}
               <Route
-                path="/admin"
+                path="/admin/*"
                 element={
                   <ProtectedRoute adminOnly>
                     <DashboardAdmin />
@@ -92,7 +109,7 @@ const App = () => {
 
               {/* Route for DashboardTech (technician access only) */}
               <Route
-                path="/tech"
+                path="/tech/*"
                 element={
                   <ProtectedRoute technicianOnly>
                     <DashboardTech />
@@ -107,8 +124,9 @@ const App = () => {
               <Route path="*" element={<Error404 />} />
             </Routes>
           </Suspense>
-        </Router>
-      </UserProvider>
+        </UserProvider>
+      </Router>
+      <ToastContainer />
     </ErrorBoundary>
   );
 };

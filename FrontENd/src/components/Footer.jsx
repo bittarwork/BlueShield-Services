@@ -1,39 +1,39 @@
 import React from "react";
-import { useTheme } from "../contexts/ThemeContext"; // تأكد من المسار الصحيح
+import { useTheme } from "../contexts/ThemeContext"; // Ensure the correct path
 import { FaFacebook, FaTwitter, FaInstagram, FaLinkedin } from "react-icons/fa";
 
 const Footer = () => {
-  const { isDarkMode } = useTheme();
+  const { isDarkMode } = useTheme(); // Get the dark mode state from context
 
   return (
     <footer
       className={`${
         isDarkMode ? "bg-gray-900 text-white" : "bg-white text-gray-900"
-      } transition-colors duration-300`}
+      } transition-colors duration-300`} // Dynamic background based on theme
     >
       <div className="container mx-auto px-4 py-8">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-          {/* معلومات الموقع */}
+          {/* Website Information */}
           <div className="space-y-4">
             <h3 className="text-2xl font-bold bg-gradient-to-r from-blue-500 to-purple-500 bg-clip-text text-transparent">
               BlueShield Services
             </h3>
             <p className="text-sm">
-              نقدم لكم أفضل الخدمات لحماية أعمالكم وبياناتكم. نحن هنا لمساعدتكم
-              على النجاح.
+              We provide the best services to protect your business and data. We
+              are here to help you succeed.
             </p>
           </div>
 
-          {/* روابط سريعة */}
+          {/* Quick Links Section */}
           <div className="space-y-4">
-            <h4 className="text-lg font-semibold">روابط سريعة</h4>
+            <h4 className="text-lg font-semibold">Quick Links</h4>
             <ul className="space-y-2">
               <li>
                 <a
                   href="/services"
                   className="hover:text-blue-500 transition-colors"
                 >
-                  الخدمات
+                  Services
                 </a>
               </li>
               <li>
@@ -41,7 +41,7 @@ const Footer = () => {
                   href="/about"
                   className="hover:text-blue-500 transition-colors"
                 >
-                  من نحن
+                  About Us
                 </a>
               </li>
               <li>
@@ -49,15 +49,15 @@ const Footer = () => {
                   href="/contact"
                   className="hover:text-blue-500 transition-colors"
                 >
-                  اتصل بنا
+                  Contact Us
                 </a>
               </li>
             </ul>
           </div>
 
-          {/* التواصل الاجتماعي */}
+          {/* Social Media Links */}
           <div className="space-y-4">
-            <h4 className="text-lg font-semibold">تابعنا</h4>
+            <h4 className="text-lg font-semibold">Follow Us</h4>
             <div className="flex space-x-4">
               <a
                 href="https://facebook.com"
@@ -95,11 +95,11 @@ const Footer = () => {
           </div>
         </div>
 
-        {/* حقوق النشر */}
+        {/* Copyright Section */}
         <div className="border-t border-gray-700 mt-8 pt-4 text-center">
           <p className="text-sm">
-            © {new Date().getFullYear()} BlueShield Services. جميع الحقوق
-            محفوظة.
+            © {new Date().getFullYear()} BlueShield Services. All rights
+            reserved.
           </p>
         </div>
       </div>
