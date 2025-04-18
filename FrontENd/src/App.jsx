@@ -21,6 +21,13 @@ const AboutUs = lazy(() => import('./pages/AboutUs'));
 const ContactUs = lazy(() => import('./pages/ContactUs'));
 const Login = lazy(() => import('./pages/Auth/Login'));
 const Register = lazy(() => import('./pages/Auth/Register'));
+const ForgetPassword = lazy(() => import('./pages/Auth/ForgetPassword'));
+const UserDashboardForAdmin = lazy(
+  () => import('./pages/Admin/UserDashboardForAdmin')
+);
+const RequestDashboardAdmin = lazy(
+  () => import('./pages/Admin/RequestDashboardAdmin')
+);
 const Error404 = lazy(() => import('./pages/Errors/Error404'));
 const Error403 = lazy(() => import('./pages/Errors/Error403'));
 
@@ -81,11 +88,12 @@ const App = () => {
             <Routes>
               {/* Route for (public access) */}
               <Route path="/" element={<LandingPage />} />
-              <Route path="/Services" element={<Services />} />
-              <Route path="/AboutUs" element={<AboutUs />} />
-              <Route path="/ContactUs" element={<ContactUs />} />
+              <Route path="/services" element={<Services />} />
+              <Route path="/about" element={<AboutUs />} />
+              <Route path="/contact" element={<ContactUs />} />
               <Route path="/Login" element={<Login />} />
               <Route path="/Register" element={<Register />} />
+              <Route path="/ForgetPassword" element={<ForgetPassword />} />
 
               {/* Route for DashboardUser (user access) */}
               <Route
@@ -99,14 +107,29 @@ const App = () => {
 
               {/* Route for DashboardAdmin (admin access only) */}
               <Route
-                path="/admin/*"
+                path="/admin/"
                 element={
                   <ProtectedRoute adminOnly>
                     <DashboardAdmin />
                   </ProtectedRoute>
                 }
               />
-
+              <Route
+                path="/admin/users"
+                element={
+                  <ProtectedRoute adminOnly>
+                    <UserDashboardForAdmin />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/admin/requests"
+                element={
+                  <ProtectedRoute adminOnly>
+                    <RequestDashboardAdmin />
+                  </ProtectedRoute>
+                }
+              />
               {/* Route for DashboardTech (technician access only) */}
               <Route
                 path="/tech/*"

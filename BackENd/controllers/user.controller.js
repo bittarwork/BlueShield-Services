@@ -175,7 +175,7 @@ exports.changePassword = async (req, res) => {
 // Register an admin account (only accessible by admins)
 exports.registerAdmin = async (req, res) => {
     try {
-        const { first_name, last_name, email, phone, password } = req.body; // Extract admin data from the request body
+        const { first_name, last_name, email, phone, password, role, date_of_birth, marital_status, payment_methods, locations } = req.body; // Extract user data from the request body
 
         // Check if the email is already in use
         const existingUser = await User.findOne({ email }); // Search for a user with the same email
@@ -194,7 +194,11 @@ exports.registerAdmin = async (req, res) => {
             email,
             phone,
             password: hashedPassword, // Save hashed password instead of plain text
-            role: "admin" // Assign "admin" role to the new user
+            role: role || "user", // Assign the specified role or default to "user"
+            date_of_birth,
+            marital_status,
+            payment_methods,
+            locations
         };
 
         // If a profile picture is uploaded, save its path in the database
@@ -202,16 +206,110 @@ exports.registerAdmin = async (req, res) => {
             userData.profile_picture = req.file.path; // Assign the file path to the profile_picture field
         }
 
-        // Create a new admin and save to the database
-        const newAdmin = new User(userData); // Create a new user object
-        await newAdmin.save(); // Save the new admin to the database
+        // Create a new user and save to the database
+        const newUser = new User(userData); // Create a new user object
+        await newUser.save(); // Save the new user to the database
 
-        return res.status(201).json({ message: "Admin registered successfully" }); // Respond with success message
+        return res.status(201).json({ message: "User registered successfully", user: newUser }); // Respond with success message and user data
     } catch (error) {
-        return res.status(500).json({ message: "Error registering admin", error: error.message }); // Handle errors
+        return res.status(500).json({ message: "Error registering user", error: error.message }); // Handle errors
     }
 };
+exports.getUserStatistics = async (req, res) => {
+    try {
+        // 1. عدد المستخدمين الكلي
+        const totalUsers = await User.countDocuments();
 
+        // 2. عدد المستخدمين حسب الدور (Role)
+        const usersByRole = await User.aggregate([
+            { $group: { _id: "$role", count: { $sum: 1 } } },
+        ]);
+
+        // 3. عدد المستخدمين حسب الحالة الاجتماعية
+        const usersByMaritalStatus = await User.aggregate([
+            { $group: { _id: "$marital_status", count: { $sum: 1 } } },
+        ]);
+
+        // 4. توزيع المستخدمين حسب الفئة العمرية
+        const usersByAgeGroup = await User.aggregate([
+            {
+                $match: {
+                    date_of_birth: { $exists: true, $ne: null }, // تجاهل المستخدمين بدون تاريخ ميلاد
+                },
+            },
+            {
+                $project: {
+                    age: {
+                        $divide: [
+                            { $subtract: [new Date(), "$date_of_birth"] },
+                            1000 * 60 * 60 * 24 * 365, // تحويل المدة إلى سنوات
+                        ],
+                    },
+                },
+            },
+            {
+                $bucket: {
+                    groupBy: "$age",
+                    boundaries: [18, 25, 35, 45, 55, 65, 100], // الفئات العمرية
+                    output: {
+                        count: { $sum: 1 },
+                    },
+                },
+            },
+        ]);
+
+        // 5. عدد المستخدمين الذين أضافوا مواقع
+        const usersWithLocations = await User.countDocuments({
+            locations: { $exists: true, $not: { $size: 0 } },
+        });
+
+        // 6. عدد المستخدمين الذين أضافوا طرق دفع
+        const usersWithPaymentMethods = await User.countDocuments({
+            payment_methods: { $exists: true, $not: { $size: 0 } },
+        });
+
+        // إرسال البيانات كـ JSON
+        res.status(200).json({
+            totalUsers,
+            usersByRole,
+            usersByMaritalStatus,
+            usersByAgeGroup,
+            usersWithLocations,
+            usersWithPaymentMethods,
+        });
+    } catch (error) {
+        console.error("Error fetching user statistics:", error);
+        res.status(500).json({ message: "Internal server error" });
+    }
+};
+// دالة لجلب المستخدمين مع إمكانية الفرز حسب الأدوار
+exports.getUsers = async (req, res) => {
+    try {
+        const { roles } = req.query; // الحصول على قيمة الأدوار من query parameters
+
+        let query = {};
+        if (roles) {
+            // إذا تم تمرير أدوار، قم بتحويلها إلى مصفوفة وإضافتها إلى الاستعلام
+            const rolesArray = roles.split(","); // تقسيم الأدوار المفصولة بفواصل إلى مصفوفة
+            query.role = { $in: rolesArray }; // استخدام $in للبحث عن مستخدمين بأي من الأدوار المحددة
+        }
+
+        const users = await User.find(query); // جلب المستخدمين بناءً على الاستعلام
+
+        res.status(200).json({
+            status: "success",
+            results: users.length,
+            data: {
+                users,
+            },
+        });
+    } catch (err) {
+        res.status(500).json({
+            status: "error",
+            message: err.message,
+        });
+    }
+};
 // Delete a user account (only accessible by admins)
 exports.deleteUser = async (req, res) => {
     try {
