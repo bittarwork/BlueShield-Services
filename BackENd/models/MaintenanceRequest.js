@@ -1,19 +1,83 @@
 const mongoose = require("mongoose");
 
-// Define the schema for maintenance requests
+// ملاحظات الطلب
+const NoteSchema = new mongoose.Schema({
+    text: {
+        type: String,
+        required: true,
+    },
+    added_by: {
+        user_id: {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: "User",
+            required: true,
+        },
+        role: {
+            type: String,
+            enum: ["admin", "technician", "user"],
+            required: true,
+        },
+    },
+    created_at: {
+        type: Date,
+        default: Date.now,
+    },
+});
+
+// الطلب الرئيسي
 const MaintenanceRequestSchema = new mongoose.Schema(
     {
-        user_id: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true }, // Reference to the user who made the request
-        description: { type: String, required: true }, // Description of the maintenance issue
-        category: { type: mongoose.Schema.Types.ObjectId, ref: "Category", required: true }, // Reference to the category of the maintenance request
-        status: { type: String, enum: ["pending", "assigned", "in-progress", "resolved"], default: "pending" }, // Status of the request (default is pending)
-        technician_id: { type: mongoose.Schema.Types.ObjectId, ref: "User" }, // Reference to the technician assigned (optional)
-        images: [{ type: String }], // Array to store image URLs related to the request
-        resolved_at: { type: Date }, // Date when the request was resolved
-        notes: { type: String }, // Additional notes related to the maintenance request
+        user_id: {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: "User",
+            required: true,
+        },
+
+        description: {
+            type: String,
+            required: true,
+        },
+
+        category: {
+            type: String,
+            required: true,
+            trim: true,
+        }
+        ,
+
+
+        location: {
+            type: {
+                lat: { type: Number, required: true },
+                lng: { type: Number, required: true },
+            },
+            required: true,
+        },
+
+        images: [
+            {
+                type: String, // اسم الملف
+            },
+        ],
+
+        status: {
+            type: String,
+            enum: ["pending", "assigned", "in-progress", "resolved"],
+            default: "pending",
+        },
+
+        technician_id: {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: "User",
+        },
+
+        resolved_at: {
+            type: Date,
+        },
+
+        notes: [NoteSchema],
     },
-    { timestamps: true } // Automatically add createdAt and updatedAt fields
+    { timestamps: true }
 );
 
-// Export the MaintenanceRequest model
 module.exports = mongoose.model("MaintenanceRequest", MaintenanceRequestSchema);

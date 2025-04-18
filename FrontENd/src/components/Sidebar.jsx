@@ -43,8 +43,7 @@ const Sidebar = () => {
         <nav className="mt-8">
           <ul className="space-y-4">
             {[
-              { path: '/', icon: <FaHome />, label: 'Home' },
-              { path: '/services', icon: <FaCogs />, label: 'Services' },
+              { path: '/admin', icon: <FaHome />, label: 'Home' },
               { path: '/admin/users', icon: <FaUser />, label: 'Users' },
               { path: '/admin/requests', icon: <FaUser />, label: 'Request' },
             ].map((item) => (

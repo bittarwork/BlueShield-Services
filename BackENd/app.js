@@ -3,8 +3,9 @@ const morgan = require("morgan");
 const cors = require("cors");
 const dotenv = require("dotenv");
 const path = require('path');
-// Import user routes from userRoutes.js file
+
 const userRoutes = require("./routes/user.routes");
+const maintenanceRoutes = require('./routes/request.routes');
 
 // Import custom request logger middleware
 const loggerMiddleware = require("./middleware/requestLogger.middleware");
@@ -23,7 +24,7 @@ app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 // CORS setup: Allow only requests from React app (usually running on localhost:3000)
 const corsOptions = {
     origin: "http://localhost:5173", // Allow requests from React app
-    methods: "GET,POST,PUT,DELETE", // Allow specific HTTP methods
+    methods: "GET,POST,PUT,DELETE,PATCH", // Allow specific HTTP methods
     allowedHeaders: "Content-Type,Authorization", // Allow specific headers
 };
 
@@ -36,6 +37,7 @@ app.use(loggerMiddleware);
 
 // Use the userRoutes for handling routes related to user-related actions
 app.use("/api/users", userRoutes);
+app.use('/api/maintenance', maintenanceRoutes);
 
 // Basic test route to check if the server is running
 app.get("/", (req, res) => {
