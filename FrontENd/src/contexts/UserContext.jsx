@@ -1,11 +1,14 @@
-import React, { createContext, useContext, useState } from 'react';
+import React, { createContext, useContext, useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 
-// Create a context for user-related data and functions
+// إنشاء السياق
 const UserContext = createContext();
 
-// UserProvider component to manage user authentication state
+// المدة المسموحة للجلسة (5 ساعات بالملي ثانية)
+const SESSION_DURATION_MS = 5 * 60 * 60 * 1000;
+
+// المزود الخاص بالسياق
 export const UserProvider = ({ children }) => {
   const [user, setUser] = useState(
     JSON.parse(localStorage.getItem('user')) || null
@@ -13,14 +16,27 @@ export const UserProvider = ({ children }) => {
   const [isAuthenticated, setIsAuthenticated] = useState(
     localStorage.getItem('isAuthenticated') === 'true'
   );
-  const [loading, setLoading] = useState(false); // Initially set loading to false
+  const [loading, setLoading] = useState(false);
   const [token, setToken] = useState(localStorage.getItem('token') || null);
+
   const API_URL = import.meta.env.VITE_API_URL;
   const navigate = useNavigate();
 
-  // Function to handle user login
+  // التحقق من صلاحية الجلسة عند التحميل
+  useEffect(() => {
+    const loginTimestamp = localStorage.getItem('loginTimestamp');
+    if (loginTimestamp && isAuthenticated) {
+      const now = Date.now();
+      const sessionTime = now - parseInt(loginTimestamp, 10);
+      if (sessionTime > SESSION_DURATION_MS) {
+        logout(); // جلسة منتهية
+      }
+    }
+  }, []);
+
+  // تسجيل الدخول
   const login = async (email, password) => {
-    setLoading(true); // Start loading
+    setLoading(true);
     try {
       const response = await axios.post(`${API_URL}/api/users/login`, {
         email,
@@ -31,11 +47,13 @@ export const UserProvider = ({ children }) => {
       localStorage.setItem('token', token);
       localStorage.setItem('user', JSON.stringify(userData));
       localStorage.setItem('isAuthenticated', 'true');
+      localStorage.setItem('loginTimestamp', Date.now().toString());
+
       setToken(token);
       setUser(userData);
       setIsAuthenticated(true);
 
-      // Redirect user based on role
+      // توجيه حسب الدور
       switch (userData.role) {
         case 'admin':
           navigate('/admin');
@@ -49,56 +67,61 @@ export const UserProvider = ({ children }) => {
       }
     } catch (error) {
       console.error('Login error:', error);
-      throw error; // Optionally, handle the error by showing a message to the user
+      throw error;
     } finally {
-      setLoading(false); // Stop loading
+      setLoading(false);
     }
   };
 
-  // Function to handle user registration
+  // تسجيل مستخدم جديد
   const register = async (userData) => {
-    setLoading(true); // Start loading
+    setLoading(true);
     try {
       const response = await axios.post(
         `${API_URL}/api/users/register`,
         userData
       );
-      const { token, user: userDataResponse } = response.data;
+      const { token, user: newUser } = response.data;
 
       localStorage.setItem('token', token);
-      localStorage.setItem('user', JSON.stringify(userDataResponse));
+      localStorage.setItem('user', JSON.stringify(newUser));
       localStorage.setItem('isAuthenticated', 'true');
+      localStorage.setItem('loginTimestamp', Date.now().toString());
+
       setToken(token);
-      setUser(userDataResponse);
+      setUser(newUser);
       setIsAuthenticated(true);
+
       navigate('/Login');
     } catch (error) {
       console.error('Registration error:', error);
       throw error;
     } finally {
-      setLoading(false); // Stop loading
+      setLoading(false);
     }
   };
 
-  // Function to handle user logout
+  // تسجيل الخروج
   const logout = () => {
-    setLoading(true); // Optionally, you can show loading during logout
+    setLoading(true);
+
     localStorage.removeItem('token');
     localStorage.removeItem('user');
     localStorage.removeItem('isAuthenticated');
+    localStorage.removeItem('loginTimestamp');
+
     setToken(null);
     setUser(null);
     setIsAuthenticated(false);
-    navigate('/'); // Redirect to home page after logout
-    setLoading(false); // Stop loading
+
+    navigate('/');
+    setLoading(false);
   };
 
-  // Function to update user profile
+  // تعديل الملف الشخصي
   const updateProfile = async (updatedData) => {
-    if (!user) {
-      throw new Error('User is not authenticated');
-    }
-    setLoading(true); // Start loading
+    if (!user) throw new Error('User is not authenticated');
+    setLoading(true);
     try {
       const response = await axios.put(
         `${API_URL}/api/users/profile/${user._id}`,
@@ -112,16 +135,14 @@ export const UserProvider = ({ children }) => {
       console.error('Update profile error:', error);
       throw error;
     } finally {
-      setLoading(false); // Stop loading
+      setLoading(false);
     }
   };
 
-  // Function to change user password
+  // تغيير كلمة المرور
   const changePassword = async (oldPassword, newPassword) => {
-    if (!user) {
-      throw new Error('User is not authenticated');
-    }
-    setLoading(true); // Start loading
+    if (!user) throw new Error('User is not authenticated');
+    setLoading(true);
     try {
       await axios.put(
         `${API_URL}/api/users/change-password/${user._id}`,
@@ -133,13 +154,13 @@ export const UserProvider = ({ children }) => {
       console.error('Change password error:', error);
       throw error;
     } finally {
-      setLoading(false); // Stop loading
+      setLoading(false);
     }
   };
 
-  // Function to register an admin (admin-only)
+  // تسجيل مشرف (admin)
   const registerAdmin = async (adminData) => {
-    setLoading(true); // Start loading
+    setLoading(true);
     try {
       const response = await axios.post(
         `${API_URL}/api/users/register-admin`,
@@ -151,13 +172,13 @@ export const UserProvider = ({ children }) => {
       console.error('Register admin error:', error);
       throw error;
     } finally {
-      setLoading(false); // Stop loading
+      setLoading(false);
     }
   };
 
-  // Function to delete a user (admin-only)
+  // حذف مستخدم (admin فقط)
   const deleteUser = async (userId) => {
-    setLoading(true); // Start loading
+    setLoading(true);
     try {
       await axios.delete(`${API_URL}/api/users/${userId}`, {
         headers: { Authorization: `Bearer ${token}` },
@@ -167,11 +188,11 @@ export const UserProvider = ({ children }) => {
       console.error('Delete user error:', error);
       throw error;
     } finally {
-      setLoading(false); // Stop loading
+      setLoading(false);
     }
   };
 
-  // Value object to be passed to the context provider
+  // القيم المتاحة داخل السياق
   const value = {
     user,
     isAuthenticated,
@@ -186,9 +207,8 @@ export const UserProvider = ({ children }) => {
     deleteUser,
   };
 
-  // Provide the context value to all child components
   return <UserContext.Provider value={value}>{children}</UserContext.Provider>;
 };
 
-// Custom hook to access the UserContext
+// هوك مخصص لاستخدام السياق
 export const useUser = () => useContext(UserContext);

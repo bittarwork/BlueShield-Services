@@ -1,19 +1,45 @@
+// models/WaterAlternativeRequest.js
 const mongoose = require("mongoose");
 
-// Define the schema for alternative water supply requests
-const AlternativeWaterSupplySchema = new mongoose.Schema(
-    {
-        request_id: { type: mongoose.Schema.Types.ObjectId, ref: "MaintenanceRequest", required: true }, // Reference to the related maintenance request
-        supplier: { type: String, required: true }, // Supplier providing the water
-        quantity: { type: Number, required: true }, // Quantity of water supplied
-        total_quantity: { type: Number, required: true }, // Total quantity needed
-        delivery_date: { type: Date, required: true }, // Actual delivery date
-        expected_delivery_date: { type: Date }, // Expected delivery date (optional)
-        delivery_status: { type: String, enum: ["pending", "delivered", "delayed"], default: "pending" }, // Status of delivery (default: pending)
-        cost: { type: Number }, // Cost of the water supply (optional)
+const WaterAlternativeRequestSchema = new mongoose.Schema({
+    user: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "User",
+        required: true,
     },
-    { timestamps: true } // Automatically add createdAt and updatedAt fields
-);
+    description: {
+        type: String,
+        required: true, // وصف ما يريده المستخدم بالتفصيل
+    },
+    location: {
+        type: {
+            lat: { type: Number, required: true },
+            lng: { type: Number, required: true },
+        },
+        required: true,
+    },
+    paymentMethod: {
+        type: String,
+        enum: ["cash_on_delivery", "electronic"],
+        default: "cash_on_delivery",
+    },
+    status: {
+        type: String,
+        enum: ["pending", "assigned", "in_progress", "delivered", "completed", "cancelled"],
+        default: "pending",
+    },
+    technician: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "User",
+        default: null,
+    },
+    adminNotes: [
+        {
+            note: String,
+            addedBy: { type: String },
+            date: { type: Date, default: Date.now },
+        },
+    ],
+}, { timestamps: true });
 
-// Export the AlternativeWaterSupply model
-module.exports = mongoose.model("AlternativeWaterSupply", AlternativeWaterSupplySchema);
+module.exports = mongoose.model("WaterAlternativeRequest", WaterAlternativeRequestSchema);
