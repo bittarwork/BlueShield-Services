@@ -4,7 +4,13 @@ import { useTheme } from '../contexts/ThemeContext';
 
 const API_URL = import.meta.env.VITE_API_URL;
 
-const AssignTechnicianModal = ({ requestId, onClose, onAssigned, token }) => {
+const AssignTechnicianModal = ({
+  requestId,
+  onClose,
+  onAssigned,
+  token,
+  assignEndpoint = `${API_URL}/api/maintenance/${requestId}/assign`, // ✅ نقطة التوسعة
+}) => {
   const { isDarkMode } = useTheme();
 
   const [technicians, setTechnicians] = useState([]);
@@ -32,7 +38,7 @@ const AssignTechnicianModal = ({ requestId, onClose, onAssigned, token }) => {
     setAssigning(true);
     try {
       await axios.patch(
-        `${API_URL}/api/maintenance/${requestId}/assign`,
+        assignEndpoint, // ✅ استخدام endpoint المرسل
         { technician_id: selectedTechnician },
         {
           headers: { Authorization: `Bearer ${token}` },
@@ -59,7 +65,6 @@ const AssignTechnicianModal = ({ requestId, onClose, onAssigned, token }) => {
           isDarkMode ? 'bg-gray-900 text-white' : 'bg-white text-gray-900'
         }`}
       >
-        {/* Close Button */}
         <button
           onClick={onClose}
           className="absolute top-4 right-4 text-2xl font-bold text-red-500 hover:text-red-600 focus:outline-none"
@@ -68,7 +73,6 @@ const AssignTechnicianModal = ({ requestId, onClose, onAssigned, token }) => {
         </button>
 
         <div className="p-6 space-y-6">
-          {/* Header */}
           <div>
             <h2 className="text-2xl font-bold border-b pb-2">
               Assign Technician
@@ -78,14 +82,12 @@ const AssignTechnicianModal = ({ requestId, onClose, onAssigned, token }) => {
             </p>
           </div>
 
-          {/* Loading/Error */}
           {loading ? (
             <div className="text-center py-6 text-sm text-gray-500">
               Loading available technicians...
             </div>
           ) : (
             <>
-              {/* Dropdown */}
               <div>
                 <label className="block mb-2 font-medium text-sm">
                   Technician:
@@ -109,7 +111,6 @@ const AssignTechnicianModal = ({ requestId, onClose, onAssigned, token }) => {
                 {error && <p className="text-red-500 text-sm mt-2">{error}</p>}
               </div>
 
-              {/* Buttons */}
               <div className="flex justify-end gap-3 pt-4">
                 <button
                   onClick={onClose}

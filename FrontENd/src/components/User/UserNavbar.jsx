@@ -1,10 +1,10 @@
 import React, { useState } from 'react';
-import { useTheme } from '../contexts/ThemeContext';
-import { useUser } from '../contexts/UserContext';
+import { useTheme } from '../../contexts/ThemeContext';
+import { useUser } from '../../contexts/UserContext';
 import { FaSun, FaMoon, FaBars, FaTimes } from 'react-icons/fa';
 import { Link } from 'react-router-dom';
-import UserProfile from './UserProfile';
-import AuthButtons from './AuthButtons';
+import UserProfile from '../UserProfile';
+import AuthButtons from '../AuthButtons';
 
 const NavBar = () => {
   const { isDarkMode, toggleTheme } = useTheme();
@@ -28,17 +28,14 @@ const NavBar = () => {
         </div>
 
         <div className="hidden md:flex items-center space-x-6">
+          <Link to="/request" className="hover:text-blue-500 transition-colors">
+            Request Dashboard
+          </Link>
           <Link
-            to="/services"
+            to="/alternative"
             className="hover:text-blue-500 transition-colors"
           >
-            Services
-          </Link>
-          <Link to="/about" className="hover:text-blue-500 transition-colors">
-            About Us
-          </Link>
-          <Link to="/contact" className="hover:text-blue-500 transition-colors">
-            Contact Us
+            Alternative Water Supply
           </Link>
         </div>
 
@@ -85,19 +82,16 @@ const NavBar = () => {
         >
           <div className="flex flex-col space-y-4 p-4">
             <Link
-              to="/services"
+              to="/request"
               className="hover:text-blue-500 transition-colors"
             >
-              Services
-            </Link>
-            <Link to="/about" className="hover:text-blue-500 transition-colors">
-              About Us
+              Request Dashboard
             </Link>
             <Link
-              to="/contact"
+              to="/alternative"
               className="hover:text-blue-500 transition-colors"
             >
-              Contact Us
+              Alternative Water Supply
             </Link>
             {isAuthenticated ? (
               <UserProfile user={user} onLogout={logout} />

@@ -62,7 +62,7 @@ export const UserProvider = ({ children }) => {
           navigate('/tech');
           break;
         default:
-          navigate('/dashboard');
+          navigate('/request');
           break;
       }
     } catch (error) {

@@ -129,18 +129,29 @@ exports.assignTechnician = async (req, res) => {
         const { id } = req.params;
         const { technician_id } = req.body;
 
-        const updated = await MaintenanceRequest.findByIdAndUpdate(
-            id,
-            { technician_id },
-            { new: true }
-        );
+        // التحقق أولاً من وجود الطلب
+        const request = await MaintenanceRequest.findById(id);
+        if (!request) {
+            return res.status(404).json({ error: 'الطلب غير موجود' });
+        }
 
-        if (!updated) return res.status(404).json({ error: 'الطلب غير موجود' });
-        res.status(200).json(updated);
+        // تحديث الفني والحالة
+        request.technician_id = technician_id;
+
+        // فقط في حال كانت الحالة الحالية "pending" نغيرها إلى "assigned"
+        if (request.status === "pending") {
+            request.status = "assigned";
+        }
+
+        await request.save();
+
+        res.status(200).json(request);
     } catch (err) {
+        console.error(err);
         res.status(500).json({ error: 'فشل في تعيين الفني' });
     }
 };
+
 
 // 🔹 تسجيل وقت الحل (مشرف فقط)
 exports.setResolvedAt = async (req, res) => {

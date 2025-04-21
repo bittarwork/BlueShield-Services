@@ -10,23 +10,36 @@ const RequestStatusChangeModal = ({
   onClose,
   onStatusUpdated,
   token,
+  statusEndpoint, // ✅ دعم endpoint خارجي
 }) => {
   const { isDarkMode } = useTheme();
   const [newStatus, setNewStatus] = useState(currentStatus || '');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
-  const statuses = ['pending', 'assigned', 'in-progress', 'resolved'];
+  const statuses = [
+    'pending',
+    'assigned',
+    'in_progress',
+    'delivered',
+    'completed',
+    'cancelled',
+  ];
 
   const handleStatusChange = async () => {
     if (!newStatus) return;
     try {
       setLoading(true);
+
+      const url =
+        statusEndpoint || `${API_URL}/api/maintenance/${requestId}/status`; // ✅ مرونة اختيار المسار
+
       await axios.patch(
-        `${API_URL}/api/maintenance/${requestId}/status`,
+        url,
         { status: newStatus },
         { headers: { Authorization: `Bearer ${token}` } }
       );
+
       onStatusUpdated();
       onClose();
     } catch (err) {
@@ -44,7 +57,6 @@ const RequestStatusChangeModal = ({
           isDarkMode ? 'bg-gray-900 text-white' : 'bg-white text-gray-900'
         }`}
       >
-        {/* Close Button */}
         <button
           onClick={onClose}
           className="absolute top-4 right-4 text-2xl font-bold text-red-500 hover:text-red-600 focus:outline-none"
@@ -52,9 +64,7 @@ const RequestStatusChangeModal = ({
           &times;
         </button>
 
-        {/* Modal Body */}
         <div className="p-6 space-y-6">
-          {/* Header */}
           <div>
             <h2 className="text-2xl font-bold border-b pb-2">
               Change Request Status
@@ -65,7 +75,6 @@ const RequestStatusChangeModal = ({
             </p>
           </div>
 
-          {/* Dropdown */}
           <div>
             <label className="block mb-2 font-medium text-sm">
               New status:
@@ -82,14 +91,13 @@ const RequestStatusChangeModal = ({
               <option value="">-- Select Status --</option>
               {statuses.map((status) => (
                 <option key={status} value={status}>
-                  {status}
+                  {status.replaceAll('_', ' ')}
                 </option>
               ))}
             </select>
             {error && <p className="text-red-500 text-sm mt-2">{error}</p>}
           </div>
 
-          {/* Buttons */}
           <div className="flex justify-end space-x-3 pt-2">
             <button
               onClick={onClose}

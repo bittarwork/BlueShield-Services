@@ -5,15 +5,15 @@ const RequestInformationModal = ({ request, onClose }) => {
   const { isDarkMode } = useTheme();
 
   const {
-    user_id,
+    user,
     category,
     description,
     location,
-    images,
+    paymentMethod,
     status,
-    notes,
+    adminNotes,
     createdAt,
-    resolved_at,
+    technician,
   } = request;
 
   const overlayStyle = 'backdrop-blur-sm';
@@ -42,8 +42,7 @@ const RequestInformationModal = ({ request, onClose }) => {
               Request Overview
             </h2>
             <p className="text-sm text-gray-500 mt-1">
-              Created at: {new Date(createdAt).toLocaleString()} | Resolved at:{' '}
-              {resolved_at ? new Date(resolved_at).toLocaleString() : '--'}
+              Created at: {new Date(createdAt).toLocaleString()}
             </p>
           </div>
 
@@ -53,18 +52,27 @@ const RequestInformationModal = ({ request, onClose }) => {
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 text-sm">
               <Info
                 label="Name"
-                value={`${user_id?.first_name} ${user_id?.last_name}`}
+                value={`${user?.first_name} ${user?.last_name}`}
               />
-              <Info label="Email" value={user_id?.email} />
-              <Info label="Phone" value={user_id?.phone} />
-              <Info
-                label="DOB"
-                value={new Date(user_id?.date_of_birth).toLocaleDateString()}
-              />
-              <Info label="Marital Status" value={user_id?.marital_status} />
-              <Info label="Role" value={user_id?.role} />
+              <Info label="Email" value={user?.email} />
             </div>
           </div>
+
+          {/* Section: Technician Info */}
+          {technician && (
+            <div>
+              <h3 className="text-lg font-semibold mb-3">
+                🔧 Assigned Technician
+              </h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 text-sm">
+                <Info
+                  label="Name"
+                  value={`${technician?.first_name} ${technician?.last_name}`}
+                />
+                <Info label="Email" value={technician?.email} />
+              </div>
+            </div>
+          )}
 
           {/* Section: Request Info */}
           <div>
@@ -72,8 +80,8 @@ const RequestInformationModal = ({ request, onClose }) => {
               🧾 Request Information
             </h3>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 text-sm">
-              <Info label="Category" value={category} />
               <Info label="Status" value={status} />
+              <Info label="Payment Method" value={paymentMethod} />
               <Info label="Description" value={description} full />
             </div>
           </div>
@@ -96,29 +104,12 @@ const RequestInformationModal = ({ request, onClose }) => {
             </div>
           </div>
 
-          {/* Section: Images */}
-          {images?.length > 0 && (
-            <div>
-              <h3 className="text-lg font-semibold mb-3">📸 Images</h3>
-              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
-                {images.map((img, i) => (
-                  <img
-                    key={i}
-                    src={`${import.meta.env.VITE_API_URL}/uploads/${img}`}
-                    alt={`image-${i}`}
-                    className="w-full h-32 object-cover rounded-lg border shadow-sm hover:scale-105 transition"
-                  />
-                ))}
-              </div>
-            </div>
-          )}
-
           {/* Section: Notes */}
           <div>
-            <h3 className="text-lg font-semibold mb-3">📝 Notes</h3>
+            <h3 className="text-lg font-semibold mb-3">📝 Admin Notes</h3>
             <div className="space-y-4">
-              {notes?.length > 0 ? (
-                notes.map((note, idx) => (
+              {adminNotes?.length > 0 ? (
+                adminNotes.map((note, idx) => (
                   <div
                     key={idx}
                     className={`p-4 rounded-md border ${
@@ -127,10 +118,10 @@ const RequestInformationModal = ({ request, onClose }) => {
                         : 'bg-gray-100 border-gray-300'
                     }`}
                   >
-                    <p className="text-sm mb-2">{note.text}</p>
+                    <p className="text-sm mb-2">{note.note}</p>
                     <div className="text-xs text-gray-500">
-                      By: {note.added_by?.role} |{' '}
-                      {new Date(note.created_at).toLocaleString()}
+                      By: {note.addedBy} |{' '}
+                      {new Date(note.date).toLocaleString()}
                     </div>
                   </div>
                 ))

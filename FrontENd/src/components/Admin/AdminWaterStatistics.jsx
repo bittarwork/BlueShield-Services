@@ -1,3 +1,4 @@
+// AdminWaterStatistics.jsx
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import { useTheme } from '../../contexts/ThemeContext';
@@ -5,8 +6,7 @@ import { useUser } from '../../contexts/UserContext';
 
 const AdminWaterStatistics = () => {
   const { isDarkMode } = useTheme();
-  const { user } = useUser(); // استخراج المستخدم
-  const token = user?.token; // استخراج التوكن
+  const { token } = useUser();
 
   const [data, setData] = useState([]);
   const [stats, setStats] = useState(null);
@@ -14,6 +14,8 @@ const AdminWaterStatistics = () => {
 
   useEffect(() => {
     const fetchWaterRequests = async () => {
+      if (!token) return;
+
       try {
         const response = await axios.get(
           `${import.meta.env.VITE_API_URL}/api/water-alternatives`,
@@ -23,6 +25,7 @@ const AdminWaterStatistics = () => {
             },
           }
         );
+
         setData(response.data);
         calculateStats(response.data);
       } catch (error) {
@@ -32,9 +35,7 @@ const AdminWaterStatistics = () => {
       }
     };
 
-    if (token) {
-      fetchWaterRequests();
-    }
+    fetchWaterRequests();
   }, [token]);
 
   const calculateStats = (requests) => {
@@ -72,6 +73,7 @@ const AdminWaterStatistics = () => {
         userCounts[userId] = (userCounts[userId] || 0) + 1;
       }
     });
+
     const mostActiveUserId = Object.keys(userCounts).sort(
       (a, b) => userCounts[b] - userCounts[a]
     )[0];
@@ -90,20 +92,31 @@ const AdminWaterStatistics = () => {
     });
   };
 
-  if (loading) return <div className="p-4">Loading statistics...</div>;
-  if (!stats) return <div className="p-4 text-red-500">No data found.</div>;
+  if (loading)
+    return (
+      <div className="p-6 text-center text-gray-600 dark:text-gray-300">
+        Loading statistics...
+      </div>
+    );
+
+  if (!stats)
+    return (
+      <div className="p-6 text-center text-red-500 dark:text-red-400">
+        No statistics available.
+      </div>
+    );
 
   return (
     <div
-      className={`p-6 rounded-md shadow ${
-        isDarkMode ? 'bg-gray-800 text-white' : 'bg-white text-gray-800'
+      className={`p-6 rounded-lg shadow-md transition-all ${
+        isDarkMode ? 'bg-gray-900 text-white' : 'bg-white text-gray-900'
       }`}
     >
-      <h2 className="text-2xl font-semibold mb-4">
-        Water Solution Requests Statistics
+      <h2 className="text-2xl font-bold mb-6 text-center">
+        Water Alternatives - Statistics Dashboard
       </h2>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
         <StatCard label="Total Requests" value={stats.totalRequests} />
         <StatCard label="Unique Technicians" value={stats.uniqueTechnicians} />
         <StatCard label="Total Admin Notes" value={stats.totalNotes} />
@@ -118,7 +131,11 @@ const AdminWaterStatistics = () => {
 
         <StatCard
           label="Most Active User"
-          value={`${stats.mostActiveUser?.first_name || ''} ${stats.mostActiveUser?.last_name || ''}`}
+          value={
+            stats.mostActiveUser
+              ? `${stats.mostActiveUser.first_name} ${stats.mostActiveUser.last_name}`
+              : 'N/A'
+          }
         />
 
         <StatCard
@@ -130,10 +147,11 @@ const AdminWaterStatistics = () => {
   );
 };
 
+// مكون إحصائية واحدة
 const StatCard = ({ label, value }) => (
-  <div className="border p-4 rounded shadow-sm bg-gray-100 dark:bg-gray-700">
-    <div className="text-sm text-gray-600 dark:text-gray-300">{label}</div>
-    <div className="text-xl font-bold">{value}</div>
+  <div className="p-5 rounded-md border shadow-sm bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-white dark:border-gray-700">
+    <div className="text-sm font-medium opacity-70">{label}</div>
+    <div className="text-2xl font-semibold mt-2">{value}</div>
   </div>
 );
 

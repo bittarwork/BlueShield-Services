@@ -7,6 +7,8 @@ const path = require('path');
 const userRoutes = require("./routes/user.routes");
 const maintenanceRoutes = require('./routes/request.routes');
 const AlternativeWaterSupply = require("./routes/supply.routes");
+const Message = require("./routes/Message.routes");
+
 
 // Import custom request logger middleware
 const loggerMiddleware = require("./middleware/requestLogger.middleware");
@@ -40,6 +42,8 @@ app.use(loggerMiddleware);
 app.use("/api/users", userRoutes);
 app.use('/api/maintenance', maintenanceRoutes);
 app.use("/api/water-alternatives", AlternativeWaterSupply);
+app.use("/api/message", Message);
+
 
 // Basic test route to check if the server is running
 app.get("/", (req, res) => {

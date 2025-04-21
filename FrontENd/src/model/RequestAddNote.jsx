@@ -4,7 +4,13 @@ import { useTheme } from '../contexts/ThemeContext';
 
 const API_URL = import.meta.env.VITE_API_URL;
 
-const RequestAddNote = ({ requestId, onClose, onNoteAdded, token }) => {
+const RequestAddNote = ({
+  requestId,
+  onClose,
+  onNoteAdded,
+  token,
+  noteEndpoint, // ✅ دعم endpoint مخصص
+}) => {
   const { isDarkMode } = useTheme();
   const [noteText, setNoteText] = useState('');
   const [loading, setLoading] = useState(false);
@@ -20,8 +26,11 @@ const RequestAddNote = ({ requestId, onClose, onNoteAdded, token }) => {
     setError('');
 
     try {
+      const url =
+        noteEndpoint || `${API_URL}/api/maintenance/${requestId}/note`; // ✅ استخدام endpoint المناسب
+
       await axios.post(
-        `${API_URL}/api/maintenance/${requestId}/note`,
+        url,
         { text: noteText },
         {
           headers: { Authorization: `Bearer ${token}` },

@@ -2,24 +2,60 @@ const mongoose = require("mongoose");
 
 const messageSchema = new mongoose.Schema(
     {
-        name: { type: String, required: true }, // Sender's name
-        email: { type: String, required: true }, // Sender's email address
-        phone: { type: String }, // Phone number (optional)
-        message: { type: String, required: true }, // Message content
-        category: {
+        // الحالة 1: مرسل مسجل بالنظام
+        sender: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
+
+        // الحالة 2: مرسل غير مسجل (زائر خارجي)
+        senderInfo: {
+            name: String,
+            email: String,
+            phone: String,
+        },
+
+        // لتحديد نوع المرسل
+        senderType: {
             type: String,
-            enum: ["feedback", "complaint", "suggestion", "support"], // Message category
+            enum: ["user", "external"],
             required: true,
         },
+
+        // مستقبل الرسالة (مطلوبة للحالة الداخلية فقط)
+        receiver: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
+
+        // محتوى الرسالة
+        content: { type: String, required: true },
+
+        // نوع الرسالة إن كانت من زائر
+        category: {
+            type: String,
+            enum: ["feedback", "complaint", "suggestion", "support"],
+        },
+
+        // مرفقات اختيارية
+        attachments: [
+            {
+                fileUrl: String,
+                fileType: {
+                    type: String,
+                    enum: ["image", "video", "document", "audio"],
+                },
+            },
+        ],
+
+        // حالة الرسالة
         status: {
             type: String,
             enum: ["unread", "in-progress", "resolved"],
-            default: "unread", // Default status
+            default: "unread",
         },
-        response: { type: String, default: "" }, // Response to the message
-        isFeatured: { type: Boolean, default: false }, // ✅ Whether it can be featured on the website?
+
+        // رد الإدارة
+        response: { type: String, default: "" },
+
+        // هل الرسالة مميزة؟ (لعرضها مثلاً على صفحة خارجية)
+        isFeatured: { type: Boolean, default: false },
     },
-    { timestamps: true } // Automatically adds createdAt and updatedAt timestamps
+    { timestamps: true }
 );
 
 module.exports = mongoose.model("Message", messageSchema);

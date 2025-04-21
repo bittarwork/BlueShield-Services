@@ -98,16 +98,16 @@ exports.updateStatus = async (req, res) => {
 // ✅ تعيين تقني للطلب
 exports.assignTechnician = async (req, res) => {
     try {
-        const { technicianId } = req.body;
+        const { technician_id } = req.body;
 
-        const technician = await User.findById(technicianId);
+        const technician = await User.findById(technician_id);
         if (!technician || technician.role !== "technician") {
             return res.status(400).json({ error: "Invalid technician" });
         }
 
         const request = await WaterAlternativeRequest.findByIdAndUpdate(
             req.params.id,
-            { technician: technicianId, status: "assigned" },
+            { technician: technician_id, status: "assigned" },
             { new: true }
         );
 
@@ -123,15 +123,15 @@ exports.assignTechnician = async (req, res) => {
 // ✅ إضافة ملاحظة إدارية
 exports.addAdminNote = async (req, res) => {
     try {
-        const { note } = req.body;
+        const { text } = req.body;
 
-        if (!note) return res.status(400).json({ error: "Note is required" });
+        if (!text) return res.status(400).json({ error: "Note is required" });
 
         const request = await WaterAlternativeRequest.findById(req.params.id);
         if (!request) return res.status(404).json({ error: "Request not found" });
 
         request.adminNotes.push({
-            note,
+            text,
             addedBy: req.user.email || "admin",
         });
 

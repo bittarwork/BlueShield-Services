@@ -22,11 +22,18 @@ const ContactUs = lazy(() => import('./pages/ContactUs'));
 const Login = lazy(() => import('./pages/Auth/Login'));
 const Register = lazy(() => import('./pages/Auth/Register'));
 const ForgetPassword = lazy(() => import('./pages/Auth/ForgetPassword'));
+
 const UserDashboardForAdmin = lazy(
   () => import('./pages/Admin/UserDashboardForAdmin')
 );
 const RequestDashboardAdmin = lazy(
   () => import('./pages/Admin/RequestDashboardAdmin')
+);
+const AlternativeWaterSupply = lazy(
+  () => import('./pages/Admin/AlternativeWaterSupply')
+);
+const AlternativeWaterSupplyUser = lazy(
+  () => import('./pages/User/AlternativeWaterSupply')
 );
 const Error404 = lazy(() => import('./pages/Errors/Error404'));
 const Error403 = lazy(() => import('./pages/Errors/Error403'));
@@ -97,10 +104,18 @@ const App = () => {
 
               {/* Route for DashboardUser (user access) */}
               <Route
-                path="/dashboard/*"
+                path="/request"
                 element={
                   <ProtectedRoute>
                     <DashboardUser />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/alternative"
+                element={
+                  <ProtectedRoute>
+                    <AlternativeWaterSupplyUser />
                   </ProtectedRoute>
                 }
               />
@@ -127,6 +142,14 @@ const App = () => {
                 element={
                   <ProtectedRoute adminOnly>
                     <RequestDashboardAdmin />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/admin/AlternativeWaterSupply"
+                element={
+                  <ProtectedRoute adminOnly>
+                    <AlternativeWaterSupply />
                   </ProtectedRoute>
                 }
               />
