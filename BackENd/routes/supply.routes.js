@@ -33,7 +33,7 @@ router.patch("/:id/status", protect, updateStatus);
 router.patch("/:id/assign", protect, admin, assignTechnician);
 
 // ✅ إضافة ملاحظة من الأدمن
-router.post("/:id/note", protect, admin, addAdminNote);
+router.post("/:id/note", protect, addAdminNote);
 
 // ✅ حذف طلب - أدمن فقط
 router.delete("/:id", protect, admin, deleteRequest);

@@ -77,7 +77,9 @@ const MyRequestTable = () => {
 
   return (
     <div className="p-4 space-y-6">
-      <h2 className="text-xl font-bold text-gray-800 dark:text-gray-100 text-center">
+      <h2
+        className={` text-xl font-bold text-center ${isDarkMode ? 'text-white' : 'text-gray-700'}`}
+      >
         📋 Your Maintenance Requests
       </h2>
 
