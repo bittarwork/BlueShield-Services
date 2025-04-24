@@ -1,3 +1,4 @@
+// App.jsx
 import React, { Suspense, lazy } from 'react';
 import {
   BrowserRouter as Router,
@@ -5,17 +6,20 @@ import {
   Route,
   Navigate,
 } from 'react-router-dom';
-import { UserProvider, useUser } from './contexts/UserContext';
+import { UserProvider } from './contexts/UserContext';
 import { ErrorBoundary } from 'react-error-boundary';
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import Skeleton from 'react-loading-skeleton';
 import 'react-loading-skeleton/dist/skeleton.css';
-// Lazy load pages to optimize performance
+
+// Components
+import ProtectedRoute from './components/routes/ProtectedRoute';
+import ErrorFallback from './components/errors/ErrorFallback';
+
+// Lazy-loaded pages
+// Public
 const LandingPage = lazy(() => import('./pages/LandingPage'));
-const DashboardUser = lazy(() => import('./pages/User/DashboardUser'));
-const DashboardAdmin = lazy(() => import('./pages/Admin/DashboardAdmin'));
-const DashboardTech = lazy(() => import('./pages/Tech/DashboardTech'));
 const Services = lazy(() => import('./pages/Services'));
 const AboutUs = lazy(() => import('./pages/AboutUs'));
 const ContactUs = lazy(() => import('./pages/ContactUs'));
@@ -23,86 +27,56 @@ const Login = lazy(() => import('./pages/Auth/Login'));
 const Register = lazy(() => import('./pages/Auth/Register'));
 const ForgetPassword = lazy(() => import('./pages/Auth/ForgetPassword'));
 
+// User
+const DashboardUser = lazy(() => import('./pages/User/DashboardUser'));
+const AlternativeWaterUser = lazy(
+  () => import('./pages/User/AlternativeWaterSupply')
+);
+
+// Admin
+const DashboardAdmin = lazy(() => import('./pages/Admin/DashboardAdmin'));
 const UserDashboardForAdmin = lazy(
   () => import('./pages/Admin/UserDashboardForAdmin')
 );
 const RequestDashboardAdmin = lazy(
   () => import('./pages/Admin/RequestDashboardAdmin')
 );
-const AlternativeWaterSupply = lazy(
+const AlternativeWaterAdmin = lazy(
   () => import('./pages/Admin/AlternativeWaterSupply')
 );
-const AlternativeWaterSupplyUser = lazy(
-  () => import('./pages/User/AlternativeWaterSupply')
-);
+const MassegeDashboard = lazy(() => import('./pages/Admin/MassegeDashboard'));
+
+// Tech
+const DashboardTech = lazy(() => import('./pages/Tech/DashboardTech'));
+
+// Errors
 const Error404 = lazy(() => import('./pages/Errors/Error404'));
 const Error403 = lazy(() => import('./pages/Errors/Error403'));
 
-// Error fallback UI for the ErrorBoundary component
-const ErrorFallback = ({ error, resetErrorBoundary }) => {
-  return (
-    <div role="alert">
-      <p>Something went wrong:</p>
-      <pre>{error.message}</pre>
-      <button onClick={resetErrorBoundary}>Try again</button>
-    </div>
-  );
-};
-
-// ProtectedRoute component for handling user access control based on roles
-const ProtectedRoute = ({
-  children,
-  adminOnly = false,
-  technicianOnly = false,
-}) => {
-  const { isAuthenticated, loading, user } = useUser();
-
-  // Show loading state while user data is being fetched
-  if (loading) {
-    return <div>Loading...</div>;
-  }
-
-  // If not authenticated or user data is missing, redirect to landing page
-  if (!isAuthenticated || user === null) {
-    return <Navigate to="/" />;
-  }
-
-  // If adminOnly flag is set, ensure the user is an admin
-  if (adminOnly && user?.role !== 'admin') {
-    return <Navigate to="/403" />; // Redirect to "Forbidden" page
-  }
-
-  // If technicianOnly flag is set, ensure the user is a technician
-  if (technicianOnly && user?.role !== 'technician') {
-    return <Navigate to="/403" />; // Redirect to "Forbidden" page
-  }
-
-  // Return the children components if user has access
-  return children;
-};
+// Skeleton while loading
 const LoadingSkeleton = () => (
-  <div>
+  <React.Fragment>
     <Skeleton height={50} count={3} />
-  </div>
+  </React.Fragment>
 );
+
 const App = () => {
   return (
-    // ErrorBoundary to catch errors and display fallback UI
     <ErrorBoundary FallbackComponent={ErrorFallback}>
       <Router>
         <UserProvider>
-          <Suspense fallback={<LoadingSkeleton></LoadingSkeleton>}>
+          <Suspense fallback={<LoadingSkeleton />}>
             <Routes>
-              {/* Route for (public access) */}
+              {/* Public Routes */}
               <Route path="/" element={<LandingPage />} />
               <Route path="/services" element={<Services />} />
               <Route path="/about" element={<AboutUs />} />
               <Route path="/contact" element={<ContactUs />} />
-              <Route path="/Login" element={<Login />} />
-              <Route path="/Register" element={<Register />} />
-              <Route path="/ForgetPassword" element={<ForgetPassword />} />
+              <Route path="/login" element={<Login />} />
+              <Route path="/register" element={<Register />} />
+              <Route path="/forgetpassword" element={<ForgetPassword />} />
 
-              {/* Route for DashboardUser (user access) */}
+              {/* User Routes */}
               <Route
                 path="/request"
                 element={
@@ -115,14 +89,14 @@ const App = () => {
                 path="/alternative"
                 element={
                   <ProtectedRoute>
-                    <AlternativeWaterSupplyUser />
+                    <AlternativeWaterUser />
                   </ProtectedRoute>
                 }
               />
 
-              {/* Route for DashboardAdmin (admin access only) */}
+              {/* Admin Routes */}
               <Route
-                path="/admin/"
+                path="/admin"
                 element={
                   <ProtectedRoute adminOnly>
                     <DashboardAdmin />
@@ -146,14 +120,23 @@ const App = () => {
                 }
               />
               <Route
-                path="/admin/AlternativeWaterSupply"
+                path="/admin/alternativewatersupply"
                 element={
                   <ProtectedRoute adminOnly>
-                    <AlternativeWaterSupply />
+                    <AlternativeWaterAdmin />
                   </ProtectedRoute>
                 }
               />
-              {/* Route for DashboardTech (technician access only) */}
+              <Route
+                path="/admin/messages"
+                element={
+                  <ProtectedRoute adminOnly>
+                    <MassegeDashboard />
+                  </ProtectedRoute>
+                }
+              />
+
+              {/* Technician Routes */}
               <Route
                 path="/tech/*"
                 element={
@@ -163,10 +146,8 @@ const App = () => {
                 }
               />
 
-              {/* Route for Error403 (Forbidden page) */}
+              {/* Error Pages */}
               <Route path="/403" element={<Error403 />} />
-
-              {/* Catch-all route for Error404 (page not found) */}
               <Route path="*" element={<Error404 />} />
             </Routes>
           </Suspense>

@@ -96,10 +96,6 @@ const AlternativeWaterSupplyTable = () => {
 
   return (
     <div className="p-4 space-y-6">
-      <h2 className="text-center text-2xl font-semibold">
-        Water Alternative Requests
-      </h2>
-
       {/* Filters */}
       <div
         className={`p-4 rounded-md shadow-md flex flex-col md:flex-row gap-4 items-stretch md:items-end justify-between ${

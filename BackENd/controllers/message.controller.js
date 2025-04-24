@@ -1,182 +1,185 @@
-const Message = require("../models/messageModel");
-const User = require("../models/User"); // للتأكد من المستخدمين في الرسائل الداخلية
+const Message = require('../models/messageModel');
 
-// إنشاء رسالة من زائر خارجي
-exports.createExternalMessage = async (req, res) => {
+/**
+ * @desc   Send a message (public use)
+ * @route  POST /api/messages
+ * @access Public
+ */
+const createMessage = async (req, res) => {
     try {
-        const { name, email, phone, content, category } = req.body;
+        const { name, email, subject, message } = req.body;
 
-        const newMessage = new Message({
-            senderType: "external",
-            senderInfo: { name, email, phone },
-            content,
-            category,
-        });
-
-        await newMessage.save();
-        res.status(201).json(newMessage);
-    } catch (err) {
-        res.status(500).json({ error: "Failed to create external message", details: err.message });
-    }
-};
-
-// إرسال رسالة داخلية بين مستخدمين
-exports.sendInternalMessage = async (req, res) => {
-    try {
-        const { senderId, receiverId, content, attachments } = req.body;
-
-        // تأكد من وجود المستخدمين
-        const [sender, receiver] = await Promise.all([
-            User.findById(senderId),
-            User.findById(receiverId),
-        ]);
-
-        if (!sender || !receiver) {
-            return res.status(404).json({ error: "Sender or receiver not found" });
+        if (!name || !email || !subject || !message) {
+            return res.status(400).json({ error: 'All fields are required.' });
         }
 
         const newMessage = new Message({
-            senderType: "user",
-            sender: senderId,
-            receiver: receiverId,
-            content,
-            attachments,
+            name,
+            email,
+            subject,
+            message,
         });
 
         await newMessage.save();
-        res.status(201).json(newMessage);
+
+        res.status(201).json({ message: 'Message sent successfully.' });
     } catch (err) {
-        res.status(500).json({ error: "Failed to send internal message", details: err.message });
+        console.error('Error in createMessage:', err);
+        res.status(500).json({ error: 'Internal server error.' });
     }
 };
 
-// جلب جميع الرسائل (بفلترة اختيارية)
-exports.getAllMessages = async (req, res) => {
+/**
+ * @desc   Get all messages (admin only)
+ * @route  GET /api/messages
+ * @access Admin
+ */
+const getAllMessages = async (req, res) => {
     try {
-        const filters = req.query; // مثل ?status=unread&senderType=external
-        const messages = await Message.find(filters)
-            .populate("sender", "name email role")
-            .populate("receiver", "name email role")
-            .sort({ createdAt: -1 });
+        const { isRead, isReplied, search } = req.query;
 
+        let filter = {};
+        if (isRead !== undefined) filter.isRead = isRead === 'true';
+        if (isReplied !== undefined) filter.isReplied = isReplied === 'true';
+
+        if (search) {
+            filter.$or = [
+                { name: { $regex: search, $options: 'i' } },
+                { email: { $regex: search, $options: 'i' } },
+                { subject: { $regex: search, $options: 'i' } },
+            ];
+        }
+
+        const messages = await Message.find(filter).sort({ createdAt: -1 });
         res.status(200).json(messages);
     } catch (err) {
-        res.status(500).json({ error: "Failed to fetch messages", details: err.message });
+        console.error('Error in getAllMessages:', err);
+        res.status(500).json({ error: 'Internal server error.' });
     }
 };
 
-// جلب رسالة واحدة حسب ID
-exports.getMessageById = async (req, res) => {
+/**
+ * @desc   Get single message (admin only)
+ * @route  GET /api/messages/:id
+ * @access Admin
+ */
+const getMessageById = async (req, res) => {
     try {
         const { id } = req.params;
-        const message = await Message.findById(id)
-            .populate("sender", "name email role")
-            .populate("receiver", "name email role");
-
-        if (!message) return res.status(404).json({ error: "Message not found" });
+        const message = await Message.findById(id);
+        if (!message) return res.status(404).json({ error: 'Message not found.' });
 
         res.status(200).json(message);
     } catch (err) {
-        res.status(500).json({ error: "Failed to fetch message", details: err.message });
+        console.error('Error in getMessageById:', err);
+        res.status(500).json({ error: 'Internal server error.' });
     }
 };
 
-// جلب رسائل مستخدم (المرسلة والمستقبلة)
-exports.getMessagesForUser = async (req, res) => {
-    try {
-        const { userId } = req.params;
-
-        const messages = await Message.find({
-            $or: [{ sender: userId }, { receiver: userId }],
-        })
-            .populate("sender", "name email")
-            .populate("receiver", "name email")
-            .sort({ createdAt: -1 });
-
-        res.status(200).json(messages);
-    } catch (err) {
-        res.status(500).json({ error: "Failed to fetch user messages", details: err.message });
-    }
-};
-
-// جلب كل رسائل الزوار (external)
-exports.getMessagesFromExternal = async (req, res) => {
-    try {
-        const messages = await Message.find({ senderType: "external" }).sort({ createdAt: -1 });
-        res.status(200).json(messages);
-    } catch (err) {
-        res.status(500).json({ error: "Failed to fetch external messages", details: err.message });
-    }
-};
-
-// تحديث حالة الرسالة
-exports.updateMessageStatus = async (req, res) => {
+/**
+ * @desc   Mark message as read (admin only)
+ * @route  PATCH /api/messages/:id/mark-read
+ * @access Admin
+ */
+const markAsRead = async (req, res) => {
     try {
         const { id } = req.params;
-        const { status } = req.body;
-
-        if (!["unread", "in-progress", "resolved"].includes(status)) {
-            return res.status(400).json({ error: "Invalid status value" });
-        }
-
-        const updated = await Message.findByIdAndUpdate(id, { status }, { new: true });
-
-        if (!updated) return res.status(404).json({ error: "Message not found" });
-
-        res.status(200).json(updated);
-    } catch (err) {
-        res.status(500).json({ error: "Failed to update status", details: err.message });
-    }
-};
-
-// الرد على رسالة
-exports.respondToMessage = async (req, res) => {
-    try {
-        const { id } = req.params;
-        const { response } = req.body;
-
-        const updated = await Message.findByIdAndUpdate(
+        const message = await Message.findByIdAndUpdate(
             id,
-            { response, status: "resolved" },
+            { isRead: true },
+            { new: true }
+        );
+        if (!message) return res.status(404).json({ error: 'Message not found.' });
+
+        res.status(200).json({ message: 'Marked as read.', data: message });
+    } catch (err) {
+        console.error('Error in markAsRead:', err);
+        res.status(500).json({ error: 'Internal server error.' });
+    }
+};
+
+/**
+ * @desc   Reply to message (admin only)
+ * @route  PATCH /api/messages/:id/reply
+ * @access Admin
+ */
+const replyToMessage = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { replyMessage } = req.body;
+
+        if (!replyMessage)
+            return res.status(400).json({ error: 'Reply message is required.' });
+
+        const message = await Message.findByIdAndUpdate(
+            id,
+            {
+                isReplied: true,
+                replyMessage,
+            },
             { new: true }
         );
 
-        if (!updated) return res.status(404).json({ error: "Message not found" });
+        if (!message) return res.status(404).json({ error: 'Message not found.' });
 
-        res.status(200).json(updated);
+        res.status(200).json({ message: 'Reply saved.', data: message });
     } catch (err) {
-        res.status(500).json({ error: "Failed to respond to message", details: err.message });
+        console.error('Error in replyToMessage:', err);
+        res.status(500).json({ error: 'Internal server error.' });
     }
 };
 
-// حذف رسالة
-exports.deleteMessage = async (req, res) => {
+/**
+ * @desc   Add or update admin note (admin only)
+ * @route  PATCH /api/messages/:id/admin-note
+ * @access Admin
+ */
+const updateAdminNote = async (req, res) => {
     try {
         const { id } = req.params;
+        const { adminNote } = req.body;
 
-        const deleted = await Message.findByIdAndDelete(id);
+        const message = await Message.findByIdAndUpdate(
+            id,
+            { adminNote },
+            { new: true }
+        );
 
-        if (!deleted) return res.status(404).json({ error: "Message not found" });
+        if (!message) return res.status(404).json({ error: 'Message not found.' });
 
-        res.status(200).json({ message: "Message deleted successfully" });
+        res.status(200).json({ message: 'Note updated.', data: message });
     } catch (err) {
-        res.status(500).json({ error: "Failed to delete message", details: err.message });
+        console.error('Error in updateAdminNote:', err);
+        res.status(500).json({ error: 'Internal server error.' });
     }
 };
 
-// تفعيل/إلغاء تمييز رسالة
-exports.toggleFeaturedMessage = async (req, res) => {
+/**
+ * @desc   Delete message (admin only)
+ * @route  DELETE /api/messages/:id
+ * @access Admin
+ */
+const deleteMessage = async (req, res) => {
     try {
         const { id } = req.params;
+        const message = await Message.findByIdAndDelete(id);
 
-        const message = await Message.findById(id);
-        if (!message) return res.status(404).json({ error: "Message not found" });
+        if (!message) return res.status(404).json({ error: 'Message not found.' });
 
-        message.isFeatured = !message.isFeatured;
-        await message.save();
-
-        res.status(200).json({ message: "Featured status toggled", newStatus: message.isFeatured });
+        res.status(200).json({ message: 'Message deleted.' });
     } catch (err) {
-        res.status(500).json({ error: "Failed to toggle featured status", details: err.message });
+        console.error('Error in deleteMessage:', err);
+        res.status(500).json({ error: 'Internal server error.' });
     }
+};
+
+// تصدير كل الدوال بصيغة CommonJS
+module.exports = {
+    createMessage,
+    getAllMessages,
+    getMessageById,
+    markAsRead,
+    replyToMessage,
+    updateAdminNote,
+    deleteMessage,
 };

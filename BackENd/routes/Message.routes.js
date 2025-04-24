@@ -1,36 +1,37 @@
-const express = require("express");
+const express = require('express');
 const router = express.Router();
-const messageController = require("../controllers/message.controller");
-const { protect, admin } = require("../middleware/auth.middleware");
 
-// 📩 رسالة من زائر (خارجي) - متاحة للجميع
-router.post("/external", messageController.createExternalMessage);
+const {
+    createMessage,
+    getAllMessages,
+    getMessageById,
+    markAsRead,
+    replyToMessage,
+    updateAdminNote,
+    deleteMessage,
+} = require('../controllers/message.controller');
 
-// 📩 رسالة داخلية بين مستخدمين - فقط للمستخدمين المسجلين
-router.post("/internal", protect, messageController.sendInternalMessage);
+const { protect, admin } = require('../middleware/auth.middleware');
 
-// 🔍 جلب كل الرسائل (إداري فقط)
-router.get("/", protect, admin, messageController.getAllMessages);
+// 🔹 إرسال رسالة (مفتوحة للزوار)
+router.post('/', createMessage);
 
-// 🔍 جلب رسالة محددة حسب ID (إداري فقط)
-router.get("/:id", protect, admin, messageController.getMessageById);
+// 🔹 جلب كل الرسائل (أدمن فقط)
+router.get('/', protect, admin, getAllMessages);
 
-// 📥 جلب رسائل مستخدم معيّن (للاستخدام الداخلي)
-router.get("/user/:userId", protect, messageController.getMessagesForUser);
+// 🔹 جلب رسالة واحدة (أدمن فقط)
+router.get('/:id', protect, admin, getMessageById);
 
-// 📥 جلب رسائل الزوار (إداري فقط)
-router.get("/external/all", protect, admin, messageController.getMessagesFromExternal);
+// 🔹 تعيين الحالة "مقروءة" (أدمن فقط)
+router.patch('/:id/mark-read', protect, admin, markAsRead);
 
-// 🔄 تحديث حالة الرسالة (إداري فقط)
-router.patch("/status/:id", protect, admin, messageController.updateMessageStatus);
+// 🔹 الرد على رسالة (أدمن فقط)
+router.patch('/:id/reply', protect, admin, replyToMessage);
 
-// ✏️ الرد على رسالة (إداري فقط)
-router.patch("/response/:id", protect, admin, messageController.respondToMessage);
+// 🔹 تحديث ملاحظة المسؤول (أدمن فقط)
+router.patch('/:id/admin-note', protect, admin, updateAdminNote);
 
-// 🗑 حذف رسالة (إداري فقط)
-router.delete("/:id", protect, admin, messageController.deleteMessage);
-
-// 🌟 تفعيل أو إلغاء تمييز الرسالة (إداري فقط)
-router.patch("/featured/:id", protect, admin, messageController.toggleFeaturedMessage);
+// 🔹 حذف رسالة (أدمن فقط)
+router.delete('/:id', protect, admin, deleteMessage);
 
 module.exports = router;

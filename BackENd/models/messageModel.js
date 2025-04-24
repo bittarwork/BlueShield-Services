@@ -1,61 +1,53 @@
-const mongoose = require("mongoose");
+const mongoose = require('mongoose');
 
 const messageSchema = new mongoose.Schema(
     {
-        // الحالة 1: مرسل مسجل بالنظام
-        sender: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
-
-        // الحالة 2: مرسل غير مسجل (زائر خارجي)
-        senderInfo: {
-            name: String,
-            email: String,
-            phone: String,
-        },
-
-        // لتحديد نوع المرسل
-        senderType: {
+        name: {
             type: String,
-            enum: ["user", "external"],
             required: true,
+            trim: true,
         },
-
-        // مستقبل الرسالة (مطلوبة للحالة الداخلية فقط)
-        receiver: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
-
-        // محتوى الرسالة
-        content: { type: String, required: true },
-
-        // نوع الرسالة إن كانت من زائر
-        category: {
+        email: {
             type: String,
-            enum: ["feedback", "complaint", "suggestion", "support"],
+            required: true,
+            trim: true,
         },
-
-        // مرفقات اختيارية
-        attachments: [
-            {
-                fileUrl: String,
-                fileType: {
-                    type: String,
-                    enum: ["image", "video", "document", "audio"],
-                },
-            },
-        ],
-
-        // حالة الرسالة
-        status: {
+        subject: {
             type: String,
-            enum: ["unread", "in-progress", "resolved"],
-            default: "unread",
+            required: true,
+            trim: true,
+        },
+        message: {
+            type: String,
+            required: true,
+            trim: true,
         },
 
-        // رد الإدارة
-        response: { type: String, default: "" },
-
-        // هل الرسالة مميزة؟ (لعرضها مثلاً على صفحة خارجية)
-        isFeatured: { type: Boolean, default: false },
+        // إدارة حالة الرسالة
+        isRead: {
+            type: Boolean,
+            default: false,
+        },
+        isReplied: {
+            type: Boolean,
+            default: false,
+        },
+        replyMessage: {
+            type: String,
+            trim: true,
+            default: '',
+        },
+        adminNote: {
+            type: String,
+            trim: true,
+            default: '',
+        },
     },
-    { timestamps: true }
+    {
+        timestamps: true, // createdAt, updatedAt
+    }
 );
 
-module.exports = mongoose.model("Message", messageSchema);
+const Message = mongoose.model('Message', messageSchema);
+
+module.exports = Message;

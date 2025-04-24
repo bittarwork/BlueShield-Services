@@ -5,13 +5,18 @@ import {
   FaHome,
   FaCogs,
   FaUser,
+  FaUsers,
   FaSignOutAlt,
   FaSun,
   FaMoon,
   FaChevronRight,
   FaTimes,
+  FaEnvelopeOpenText, // للرسائل
+  FaTasks, // للطلبات
+  FaTruck, // للإمداد البديل
 } from 'react-icons/fa';
 import { Link, useLocation } from 'react-router-dom';
+import UserInformationModal from '../model/UserInformationModal';
 
 const Sidebar = () => {
   const { isDarkMode, toggleTheme } = useTheme();
@@ -23,12 +28,17 @@ const Sidebar = () => {
 
   const navItems = [
     { path: '/admin', icon: <FaHome />, label: 'Home' },
-    { path: '/admin/users', icon: <FaUser />, label: 'Users' },
-    { path: '/admin/requests', icon: <FaUser />, label: 'Requests' },
+    { path: '/admin/users', icon: <FaUsers />, label: 'Users' },
+    { path: '/admin/requests', icon: <FaTasks />, label: 'Requests' },
     {
       path: '/admin/AlternativeWaterSupply',
-      icon: <FaCogs />,
+      icon: <FaTruck />,
       label: 'Alternative Supply',
+    },
+    {
+      path: '/admin/messages',
+      icon: <FaEnvelopeOpenText />,
+      label: 'Messages',
     },
   ];
 
@@ -112,43 +122,11 @@ const Sidebar = () => {
       </div>
 
       {/* User Info Modal */}
-      {isModalOpen && (
-        <div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50"
-          onClick={toggleModal}
-        >
-          <div
-            className={`relative rounded-lg p-6 w-96 ${themeStyles.modal}`}
-            onClick={(e) => e.stopPropagation()}
-          >
-            <button
-              onClick={toggleModal}
-              className={`absolute top-2 right-2 p-2 rounded-full ${themeStyles.hover}`}
-            >
-              <FaTimes />
-            </button>
-            <h2 className="text-2xl font-bold mb-4">User Info</h2>
-            <div className="space-y-4 text-sm">
-              <div>
-                <label className="block font-medium">Full Name:</label>
-                <p className="mt-1">{`${user.first_name} ${user.last_name}`}</p>
-              </div>
-              <div>
-                <label className="block font-medium">Email:</label>
-                <p className="mt-1">{user.email}</p>
-              </div>
-              <div>
-                <label className="block font-medium">Phone:</label>
-                <p className="mt-1">{user.phone}</p>
-              </div>
-              <div>
-                <label className="block font-medium">Role:</label>
-                <p className="mt-1">{user.role}</p>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
+      <UserInformationModal
+        isOpen={isModalOpen}
+        onClose={toggleModal}
+        user={user}
+      />
     </aside>
   );
 };

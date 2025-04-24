@@ -82,7 +82,7 @@ const CreateWaterRequestModal = ({ isOpen, onClose, onSuccess }) => {
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center px-4 backdrop-blur-sm">
+    <div className="fixed mt-5 inset-0 z-50 flex items-center justify-center backdrop-blur-sm">
       <div
         className={`w-full max-w-2xl rounded-xl shadow-2xl relative transition-all duration-300 ${
           isDarkMode ? 'bg-gray-900 text-white' : 'bg-white text-gray-900'

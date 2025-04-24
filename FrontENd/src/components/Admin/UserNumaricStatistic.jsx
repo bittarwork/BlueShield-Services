@@ -10,26 +10,6 @@ import {
   FaSmile,
   FaFrown,
 } from 'react-icons/fa';
-import { Pie, Bar } from 'react-chartjs-2';
-import {
-  Chart as ChartJS,
-  ArcElement,
-  Tooltip,
-  Legend,
-  CategoryScale,
-  LinearScale,
-  BarElement,
-} from 'chart.js';
-
-// تسجيل مكونات Chart.js
-ChartJS.register(
-  ArcElement,
-  Tooltip,
-  Legend,
-  CategoryScale,
-  LinearScale,
-  BarElement
-);
 
 const UserNumaricStatistic = () => {
   const { isDarkMode } = useTheme();
@@ -37,7 +17,6 @@ const UserNumaricStatistic = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  // جلب البيانات من الـ API
   useEffect(() => {
     const fetchStatistics = async () => {
       try {
@@ -45,7 +24,7 @@ const UserNumaricStatistic = () => {
           `${import.meta.env.VITE_API_URL}/api/users/statistics`,
           {
             headers: {
-              Authorization: `Bearer ${localStorage.getItem('token')}`, // إضافة التوكن للتحقق من الصلاحية
+              Authorization: `Bearer ${localStorage.getItem('token')}`,
             },
           }
         );
@@ -66,7 +45,6 @@ const UserNumaricStatistic = () => {
     fetchStatistics();
   }, []);
 
-  // تصميم البطاقة مع أيقونة
   const StatCard = ({ title, value, icon: Icon, color }) => (
     <div
       className={`p-6 rounded-lg shadow-lg transform transition-all duration-300 hover:scale-105 ${
@@ -84,66 +62,6 @@ const UserNumaricStatistic = () => {
       </div>
     </div>
   );
-
-  // بيانات المخطط الدائري (Pie Chart) لتوزيع المستخدمين حسب الدور
-  const rolesChartData = {
-    labels: statistics?.usersByRole?.map((role) => role._id) || [],
-    datasets: [
-      {
-        label: 'Users by Role',
-        data: statistics?.usersByRole?.map((role) => role.count) || [],
-        backgroundColor: ['#3b82f6', '#a855f7', '#10b981'], // ألوان الأدوار
-        borderColor: isDarkMode ? '#1e293b' : '#f3f4f6', // لون الحدود
-        borderWidth: 1,
-      },
-    ],
-  };
-
-  // بيانات المخطط الشريطي (Bar Chart) لتوزيع المستخدمين حسب الفئة العمرية
-  const ageChartData = {
-    labels: statistics?.usersByAgeGroup?.map((age) => `Age ${age._id}+`) || [],
-    datasets: [
-      {
-        label: 'Users by Age Group',
-        data: statistics?.usersByAgeGroup?.map((age) => age.count) || [],
-        backgroundColor: '#3b82f6', // لون الأشرطة
-        borderColor: isDarkMode ? '#1e293b' : '#f3f4f6', // لون الحدود
-        borderWidth: 1,
-      },
-    ],
-  };
-
-  // بيانات المخطط الدائري (Pie Chart) للحالة الاجتماعية
-  const maritalStatusChartData = {
-    labels: statistics?.usersByMaritalStatus?.map((status) => status._id) || [],
-    datasets: [
-      {
-        label: 'Users by Marital Status',
-        data:
-          statistics?.usersByMaritalStatus?.map((status) => status.count) || [],
-        backgroundColor: ['#3b82f6', '#a855f7', '#10b981'], // ألوان الحالات الاجتماعية
-        borderColor: isDarkMode ? '#1e293b' : '#f3f4f6', // لون الحدود
-        borderWidth: 1,
-      },
-    ],
-  };
-
-  // بيانات المخطط الشريطي (Bar Chart) للمستخدمين الذين أضافوا مواقع أو طرق دفع
-  const locationsAndPaymentsChartData = {
-    labels: ['Users with Locations', 'Users with Payment Methods'],
-    datasets: [
-      {
-        label: 'Count',
-        data: [
-          statistics?.usersWithLocations || 0,
-          statistics?.usersWithPaymentMethods || 0,
-        ],
-        backgroundColor: ['#3b82f6', '#a855f7'], // ألوان الأشرطة
-        borderColor: isDarkMode ? '#1e293b' : '#f3f4f6', // لون الحدود
-        borderWidth: 1,
-      },
-    ],
-  };
 
   if (loading) {
     return (
@@ -167,8 +85,8 @@ const UserNumaricStatistic = () => {
     >
       <h2 className="text-center text-2xl font-bold mb-6">User Statistics</h2>
 
-      {/* البطاقات الإحصائية */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+      {/* البطاقات الإحصائية فقط */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         <StatCard
           title="Total Users"
           value={statistics?.totalUsers || 0}
@@ -221,45 +139,6 @@ const UserNumaricStatistic = () => {
           icon={FaCreditCard}
           color="bg-teal-100 text-teal-600"
         />
-      </div>
-
-      {/* المخططات */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <div
-          className={`p-6 rounded-lg shadow-lg ${isDarkMode ? 'bg-gray-800' : 'bg-white'}`}
-        >
-          <h3 className="text-lg font-semibold mb-4">Users by Role</h3>
-          <Pie data={rolesChartData} />
-        </div>
-
-        <div
-          className={`p-6 rounded-lg shadow-lg ${isDarkMode ? 'bg-gray-800' : 'bg-white'}`}
-        >
-          <h3 className="text-lg font-semibold mb-4">
-            Users by Marital Status
-          </h3>
-          <Pie data={maritalStatusChartData} />
-        </div>
-        <div
-          className={`p-6 rounded-lg shadow-lg ${isDarkMode ? 'bg-gray-800' : 'bg-white'}`}
-        >
-          <h3 className="text-lg font-semibold mb-4">Users by Age Group</h3>
-          {statistics?.usersByAgeGroup?.length === 0 ? (
-            <p className="text-center text-gray-500">
-              لا توجد بيانات كافية لعرض التوزيع العمري.
-            </p>
-          ) : (
-            <Bar data={ageChartData} />
-          )}
-        </div>
-        <div
-          className={`p-6 rounded-lg shadow-lg ${isDarkMode ? 'bg-gray-800' : 'bg-white'}`}
-        >
-          <h3 className="text-lg font-semibold mb-4">
-            Users with Locations & Payment Methods
-          </h3>
-          <Bar data={locationsAndPaymentsChartData} />
-        </div>
       </div>
     </div>
   );

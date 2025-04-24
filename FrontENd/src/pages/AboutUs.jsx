@@ -84,47 +84,76 @@ const AboutUs = () => {
           </div>
         </div>
 
-        {/* Team Section */}
+        {/* Project Contributors Section */}
         <div className="container mx-auto px-4 py-16">
           <h2 className="text-3xl font-bold text-center mb-12">
-            Meet Our Team
+            Project Contributors
           </h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
             {[
               {
-                name: 'John Doe',
-                role: 'CEO',
-                image: 'https://via.placeholder.com/150',
+                name: 'Mohammed Essam Al-Mazloom',
+                birthDate: 'July 14, 1998',
+                birthPlace: 'Riyadh',
+                image: 'https://via.placeholder.com/150', // ضع هنا رابط الصورة الشخصية
+                description:
+                  'I am Mohammed from Riyadh, a student at the Arab Open University. I work for a water pump distribution company. I’m passionate about digital technology and innovation. My love for progress and modern solutions inspired me to join this field, and today I proudly present my graduation project, crafted with creativity and dedication.',
               },
               {
-                name: 'Jane Smith',
-                role: 'CTO',
-                image: 'https://via.placeholder.com/150',
+                name: 'Thabit Abdullah Al-Jundi',
+                birthDate: 'January 1, 1998',
+                universityId: '9101711723',
+                image: 'https://via.placeholder.com/150', // ضع هنا رابط الصورة الشخصية
+                description:
+                  'My name is Thabit Al-Jundi, studying Information Technology and Computing at the Arab Open University. I currently work at TRIO, a company specialized in water pumps and maintenance centers. My goal is to enhance my skills and contribute to improving the quality of services delivered to customers.',
               },
-              {
-                name: 'Mike Johnson',
-                role: 'Lead Engineer',
-                image: 'https://via.placeholder.com/150',
-              },
-            ].map((member, index) => (
+            ].map((student, index) => (
               <div
                 key={index}
-                className={`p-6 rounded-2xl shadow-xl transform transition-all duration-300 hover:scale-105 ${
+                className={`p-6 rounded-2xl shadow-xl transform transition-all duration-300 hover:scale-105 flex flex-col items-center text-center ${
                   isDarkMode ? 'bg-gray-800' : 'bg-white'
                 }`}
               >
                 <img
-                  src={member.image}
-                  alt={member.name}
-                  className="w-32 h-32 rounded-full mx-auto mb-4"
+                  src={student.image}
+                  alt={student.name}
+                  className="w-28 h-28 rounded-full object-cover mb-4 border-4 border-gray-300 dark:border-gray-700"
                 />
-                <h3 className="text-xl font-semibold text-center mb-2">
-                  {member.name}
-                </h3>
+                <h3 className="text-xl font-semibold mb-2">{student.name}</h3>
                 <p
-                  className={`text-center ${isDarkMode ? 'text-gray-300' : 'text-gray-700'}`}
+                  className={`mb-1 text-sm ${
+                    isDarkMode ? 'text-gray-400' : 'text-gray-600'
+                  }`}
                 >
-                  {member.role}
+                  <span className="font-medium">Date of Birth:</span>{' '}
+                  {student.birthDate}
+                </p>
+                {student.birthPlace && (
+                  <p
+                    className={`mb-1 text-sm ${
+                      isDarkMode ? 'text-gray-400' : 'text-gray-600'
+                    }`}
+                  >
+                    <span className="font-medium">Place of Birth:</span>{' '}
+                    {student.birthPlace}
+                  </p>
+                )}
+                {student.universityId && (
+                  <p
+                    className={`mb-1 text-sm ${
+                      isDarkMode ? 'text-gray-400' : 'text-gray-600'
+                    }`}
+                  >
+                    <span className="font-medium">University ID:</span>{' '}
+                    {student.universityId}
+                  </p>
+                )}
+                <p
+                  className={`mt-4 text-sm ${
+                    isDarkMode ? 'text-gray-300' : 'text-gray-700'
+                  }`}
+                >
+                  {student.description}
                 </p>
               </div>
             ))}
