@@ -1,6 +1,5 @@
 const mongoose = require("mongoose");
 
-// ملاحظات الطلب
 const NoteSchema = new mongoose.Schema({
     text: {
         type: String,
@@ -24,7 +23,6 @@ const NoteSchema = new mongoose.Schema({
     },
 });
 
-// الطلب الرئيسي
 const MaintenanceRequestSchema = new mongoose.Schema(
     {
         user_id: {
@@ -56,7 +54,7 @@ const MaintenanceRequestSchema = new mongoose.Schema(
 
         images: [
             {
-                type: String, // اسم الملف
+                type: String,
             },
         ],
 

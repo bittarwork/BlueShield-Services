@@ -22,8 +22,6 @@ const messageSchema = new mongoose.Schema(
             required: true,
             trim: true,
         },
-
-        // إدارة حالة الرسالة
         isRead: {
             type: Boolean,
             default: false,

@@ -1,4 +1,4 @@
-// models/WaterAlternativeRequest.js
+
 const mongoose = require("mongoose");
 
 const WaterAlternativeRequestSchema = new mongoose.Schema({
@@ -9,7 +9,7 @@ const WaterAlternativeRequestSchema = new mongoose.Schema({
     },
     description: {
         type: String,
-        required: true, // وصف ما يريده المستخدم بالتفصيل
+        required: true,
     },
     location: {
         type: {
